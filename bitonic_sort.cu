@@ -3,6 +3,7 @@
  * Compile with
  * nvcc -arch=sm_11 bitonic_sort.cu
  * Based on http://www.tools-of-computing.com/tc/CS/Sorts/bitonic_sort.htm
+ * License: BSD 3
  */
 
 #include <stdlib.h>
