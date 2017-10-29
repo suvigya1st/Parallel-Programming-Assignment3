@@ -1,4 +1,5 @@
 # define BLOCK_SIZE 4;
+#include <iostream.h>;
 
 __global__ void better_inclusive_scan (int *X, int *Y, int n)
 {
@@ -66,7 +67,7 @@ int main()
 
     //SORTING
     //kernel launch for sorting wrt d_pr and d_bt along with d_pid
-    
+
     cudaMemcpy(h_bt, d_bt, sizeof(int)*n,cudaMemcpyDeviceToHost);
     cudaMemcpy(h_pr, d_pr, sizeof(int)*n,cudaMemcpyDeviceToHost);
     cudaMemcpy(h_pid, d_pid, sizeof(int)*n,cudaMemcpyDeviceToHost);
