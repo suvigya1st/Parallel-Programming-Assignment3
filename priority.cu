@@ -1,5 +1,5 @@
-# define BLOCK_SIZE 4;
-#include <iostream.h>;
+# define BLOCK_SIZE 4
+#include <iostream.h>
 
 __global__ void better_inclusive_scan (int *X, int *Y, int n)
 {
