@@ -41,7 +41,6 @@ void array_fill(float *arr, int length)
   int i;
   for (i = 0; i < length; ++i) {
     arr[i] = random_int();
-    printf("%1.3f\n",arr[i]);
   }
 }
 
