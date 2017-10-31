@@ -1,4 +1,14 @@
-# define BLOCK_SIZE 4
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+#define THREADS 512 // 2^9
+#define BLOCKS 32768 // 2^15
+#define NUM THREADS*BLOCKS
+
+# define THREADS 4
+
 #include <iostream.h>
 
 __global__ void better_inclusive_scan (int *X, int *Y, int n)
@@ -22,7 +32,7 @@ __global__ void better_inclusive_scan (int *X, int *Y, int n)
 	__syncthreads();
 	if (threadIdx.x < blockIdx.x)
 	{
-		XY[threadIdx.x] = Y[threadIdx*blockDim.x + (BLOCK_SIZE-1)];
+		XY[threadIdx.x] = Y[threadIdx*blockDim.x + (THREADS-1)];
 	}
 	__syncthreads();
 	for(int stride = 0; stride < blockIdx.x; stride++)
@@ -32,30 +42,40 @@ __global__ void better_inclusive_scan (int *X, int *Y, int n)
 	}
 
 }
+float random_int()
+{
+  return (int)rand()%(int)100;
+}
+
+void array_fill(float *arr, int length)
+{
+  srand(time(NULL));
+  int i;
+  for (i = 0; i < length; ++i) {
+    arr[i] = random_int();
+  }
+}
 
 int main()
 {
-	int h_bt[20],h_pid[20],h_wt[20],h_tat[20],h_pr[20],i,j,n,total=0,pos,temp,avg_wt,avg_tat;
-    printf("Enter Total Number of Process:");
-    scanf("%d",&n);
+	int h_pid[NUM],h_wt[NUM],h_tat[NUM],i,j,n,total=0,pos,temp,avg_wt,avg_tat;
+    // printf("Enter Total Number of Process:");
+    // scanf("%d",&n);
  
-    printf("\nEnter Burst Time and Priority\n");
-    for(i=0;i<n;i++)
-    {
-        printf("\nP[%d]\n",i+1);
-        printf("Burst Time:");
-        scanf("%d",&bt[i]);
-        printf("Priority:");
-        scanf("%d",&pr[i]);
-        p[i]=i+1;           //contains process number
-    }
+    //printf("\nEnter Burst Time and Priority\n");
+    int *h_bt = (int*) malloc( NUM * sizeof(int));
+    int *h_pr = (int*) malloc( NUM * sizeof(int));
+  	array_fill(h_bt, NUM);
+  	array_fill(h_pr, NUM);
+  	printf("\nINITIAL ARRAY\n");
+  	//print_array(values, NUM_VALS);
 
     //memory allocation for device copy
-    int *d_pid = 0;
-    int *d_pr = 0;
-    int *d_bt = 0;
+    int *d_pid;
+    int *d_pr;
+    int *d_bt;
     //int *d_wt = 0;
-    int *d_tat = 0;
+    int *d_tat;
     cudaMalloc((void**)&d_pid,sizeof(int)*n);
     cudaMemcpy(d_pid, h_pid, sizeof(int)*n,cudaMemcpyHostToDevice);
 
@@ -74,7 +94,7 @@ int main()
     //we get the sorted arrays
 
 
-	better_inclusive_scan<<<ceil(n/BLOCK_SIZE),BLOCK_SIZE,sizeof(int)*n>>>(d_bt,d_tat,n);
+	better_inclusive_scan<<<BLOCKS,THREADS,sizeof(int)*n>>>(d_bt,d_tat,n);
 
 	cudaMemcpy(h_tat, d_tat, sizeof(int)*n,cudaMemcpyDeviceToHost);
 

@@ -21,9 +21,9 @@ void print_elapsed(clock_t start, clock_t stop)
   printf("Elapsed time: %.3fs\n", elapsed);
 }
 
-float random_float()
+float random_int()
 {
-  return (float)rand()/(float)RAND_MAX;
+  return (int)rand()%(int)100;
 }
 
 void array_print(float *arr, int length) 
@@ -40,7 +40,19 @@ void array_fill(float *arr, int length)
   srand(time(NULL));
   int i;
   for (i = 0; i < length; ++i) {
-    arr[i] = random_float();
+    arr[i] = random_int();
+    printf("%1.3f\n",arr[i]);
+  }
+}
+
+//print the array
+void print_array(float *arr, int length)
+{
+  //srand(time(NULL));
+  int i;
+  for (i = 0; i < length; ++i) {
+    //arr[i] = random_float();
+    printf("%1.3f\n",arr[i]);
   }
 }
 
@@ -105,10 +117,15 @@ int main(void)
 
   float *values = (float*) malloc( NUM_VALS * sizeof(float));
   array_fill(values, NUM_VALS);
+  printf("\nINITIAL ARRAY\n");
+  print_array(values, NUM_VALS);
+
 
   start = clock();
   bitonic_sort(values); /* Inplace */
   stop = clock();
 
+  printf("\nFINAL ARRAY\n");
+  print_array(values, NUM_VALS);
   print_elapsed(start, stop);
 }
