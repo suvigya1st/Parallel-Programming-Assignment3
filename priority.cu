@@ -148,7 +148,7 @@ __global__ void work_inefficient_scan_kernel(int *X, int *Y, int InputSize)
 
 __global__ void work_efficient_scan_kernel(int *X, int *Y, int InputSize)
 {
-  __shared__ int XY[THREADS];
+  extern __shared__ int XY[];
   int i= blockIdx.x*blockDim.x+ threadIdx.x;
   if (i < InputSize)
   {
