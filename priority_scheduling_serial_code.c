@@ -1,20 +1,57 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+#define THREADS 256 // 2^9
+#define BLOCKS 32 // 2^15
+#define NUM THREADS*BLOCKS
+
+int seed_var =1239;
+
+int random_int()
+{
+  return (int)rand()%(int)9 +1;
+}
+
+void array_fill(int *arr, int length)
+{
+  srand(++seed_var);
+  int i;
+  for (i = 0; i < length; ++i) {
+    arr[i] = random_int();
+  }
+}
+
+void print_elapsed(clock_t start, clock_t stop)
+{
+  double elapsed = ((double) (stop - start)) / CLOCKS_PER_SEC;
+  printf("\nElapsed time: %.3fs\n", elapsed);
+}
+
 int main()
 {
-    int bt[20],p[20],wt[20],tat[20],pr[20],i,j,n,total=0,pos,temp,avg_wt,avg_tat;
-    printf("Enter Total Number of Process:");
-    scanf("%d",&n);
- 
-    printf("\nEnter Burst Time and Priority\n");
+    int i,j,n,total=0,pos,temp,avg_wt,avg_tat;
+    
+    n=NUM;
+
+    int *bt = (int*) calloc( NUM , sizeof(int));
+    int *pr = (int*) calloc( NUM , sizeof(int));
+    int *wt = (int*) calloc( NUM , sizeof(int));
+    int *tat = (int*) calloc( NUM , sizeof(int));
+
+
+    array_fill(bt, NUM);
+    array_fill(pr, NUM);
+    clock_t start, stop;
+
+    printf("\nPr\tBT\tWT\tTAT");
     for(i=0;i<n;i++)
     {
-        printf("\nP[%d]\n",i+1);
-        printf("Burst Time:");
-        scanf("%d",&bt[i]);
-        printf("Priority:");
-        scanf("%d",&pr[i]);
-        p[i]=i+1;           //contains process number
+        printf("\n%d\t%d\t%d\t%d",pr[i],bt[i],wt[i],tat[i]);
     }
- 
+
+    start = clock();
+
     //sorting burst time, priority and process number in ascending order using selection sort
     for(i=0;i<n;i++)
     {
@@ -33,34 +70,33 @@ int main()
         bt[i]=bt[pos];
         bt[pos]=temp;
  
-        temp=p[i];
-        p[i]=p[pos];
-        p[pos]=temp;
     }
  
     wt[0]=0;    //waiting time for first process is zero
- 
+     
     //calculate waiting time
     for(i=1;i<n;i++)
     {
         wt[i]=wt[i-1]+bt[i-1];
-        total+=wt[i];
+        //total+=wt[i];
     }
- 
-    avg_wt=total/n;      //average waiting time
-    total=0;
- 
-    printf("\nProcess\t    Burst Time    \tWaiting Time\tTurnaround Time");
+    
     for(i=0;i<n;i++)
     {
         tat[i]=bt[i]+wt[i];     //calculate turnaround time
-        total+=tat[i];
-        printf("\nP[%d]\t\t  %d\t\t    %d\t\t\t%d",p[i],bt[i],wt[i],tat[i]);
+    }
+    stop = clock();
+
+    printf("\nPr\tBT\tWT\tTAT");
+    for(i=0;i<n;i++)
+    {
+        printf("\n%d\t%d\t%d\t%d",pr[i],bt[i],wt[i],tat[i]);
     }
  
-    avg_tat=total/n;     //average turnaround time
-    printf("\n\nAverage Waiting Time=%d",avg_wt);
-    printf("\nAverage Turnaround Time=%d\n",avg_tat);
- 
+    //avg_tat=total/n;     //average turnaround time
+    //printf("\n\nAverage Waiting Time=%d",avg_wt);
+    //printf("\nAverage Turnaround Time=%d\n",avg_tat);
+    print_elapsed(start, stop);
+
     return 0;
 }
