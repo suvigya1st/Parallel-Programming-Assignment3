@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <time.h>
 
-#define THREADS 256 // 2^9
-#define BLOCKS 32 // 2^15
+#define THREADS 256 
+#define BLOCKS 32 
 #define NUM THREADS*BLOCKS
 
 int seed_var =1239;
@@ -35,7 +35,7 @@ void print_array(int *arr1,int *arr2 ,int *arr3,int *arr4, int length)
 void print_elapsed(clock_t start, clock_t stop)
 {
   double elapsed = ((double) (stop - start)) / CLOCKS_PER_SEC;
-  printf("Elapsed time: %.3fs\n", elapsed);
+  printf("Elapsed time: %.3fs for %d process\n", elapsed, NUM);
 }
 
 __device__ void swap(int *xp, int *yp)
@@ -95,56 +95,6 @@ void sorting_first(int *pr, int *bt)
 }
 
 
-__global__ void inclusive_scan(int *X, int *Y, int N)
-{
-  extern __shared__ int XY[];
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
-  // load input into __shared__ memory
-  if(i<N)
-  {  
-    XY[threadIdx.x] =X[i];  
-  }  
-    /*Note here stride <= threadIdx.x, means that everytime the threads with threadIdx.x less than 
-    stride do not participate in loop*/
-  for(int stride = 1; stride <= threadIdx.x; stride *= 2) {
-    __syncthreads();
-    XY[threadIdx.x]+= XY[threadIdx.x - stride];
-  }
-  /*This is executed by all threads, so that they store the final prefix sum to 
-  corresponding locations in global   memory*/
-    Y[i]=XY[threadIdx.x];
-
-// wait until all threads of this block writes the output for all prefix sum within the block 
-  __syncthreads();
-  if (threadIdx.x < blockIdx.x) //for 1st block onwards
-  {
-  //update the shared memory to keep prefix sum of last elements of previous block's
-  XY[threadIdx.x] = Y[threadIdx.x * blockDim.x + THREADS - 1];
-   }
-   __syncthreads();
-  for (int stride = 0; stride < blockIdx.x; stride++) 
-  {    //add all previous las elements to this block elements
-    Y[threadIdx.x + blockDim.x * blockIdx.x] += XY[stride];
-    __syncthreads();
-    
-  }
-}
-
-__global__ void work_inefficient_scan_kernel(int *X, int *Y, int InputSize)
-{
-  __shared__ int XY[THREADS];
-  int i= blockIdx.x*blockDim.x+ threadIdx.x;
-  {
-    XY[threadIdx.x] = X[i];
-  }
-  // the code below performs iterative scan on XY
-  for (unsigned int stride = 1; stride <= threadIdx.x; stride *= 2)
-  {
-    __syncthreads();
-    XY[threadIdx.x] += XY[threadIdx.x-stride];
-  }
-  Y[i] = XY[threadIdx.x];
-}
 
 __global__ void work_efficient_scan_kernel(int *X, int *Y, int InputSize)
 {
@@ -199,11 +149,7 @@ void scan_next(int *bt, int *tat)
 
 int main()
 {
-  //int h_pid[NUM],h_wt[NUM],h_tat[NUM],i,j,n,total=0,pos,temp,avg_wt,avg_tat;
-  // printf("Enter Total Number of Process:");
-  // scanf("%d",&n);
-
-  //printf("\nEnter Burst Time and Priority\n");
+  
   clock_t start, stop;
   int *h_bt = (int*) malloc( NUM * sizeof(int));
   int *h_pr = (int*) malloc( NUM * sizeof(int));
@@ -232,9 +178,6 @@ int main()
   
   scan_next(d_bt, d_tat);
   
-  //work_inefficient_scan_kernel<<<BLOCKS,THREADS,size>>>(d_bt,d_tat,NUM);
-
-
   cudaMemcpy(h_bt, d_bt, size, cudaMemcpyDeviceToHost);
   cudaMemcpy(h_pr, d_pr, size, cudaMemcpyDeviceToHost);
   cudaMemcpy(&h_wt[1], d_tat, size, cudaMemcpyDeviceToHost);

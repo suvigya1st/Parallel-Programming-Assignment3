@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#define THREADS 256 // 2^9
+#define THREADS 256// 2^9
 #define BLOCKS 32 // 2^15
 #define NUM THREADS*BLOCKS
 
@@ -25,7 +25,7 @@ void array_fill(int *arr, int length)
 void print_elapsed(clock_t start, clock_t stop)
 {
   double elapsed = ((double) (stop - start)) / CLOCKS_PER_SEC;
-  printf("\nElapsed time: %.3fs\n", elapsed);
+  printf("Elapsed time: %.3fs for %d process\n", elapsed, NUM);
 }
 
 int main()
